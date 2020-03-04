@@ -7,33 +7,91 @@ import {
   Button,
   Header,
   Message,
-  Icon
+  Icon,
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
+import _ from 'lodash'
 
 class Register extends React.Component {
   state = {
     username: "",
     email: "",
     password: "",
-    passwordConfirmation: ""
+    passwordConfirmation: "",
+    errors: []
   };
 
+  /* 
+  note: setState value in form
+  */
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
 
+  /* 
+  note: valid form
+  */
+  isFormValid = () => {
+    let errors = []
+    let error;
+    if (this.isFormEmpty(this.state)) {
+      error = { message: 'fill in all field' }
+      this.setState({ errors: errors.concat(error) })
+      return false
+    }
+    else if (!this.isPasswordValid(this.state)) {
+      error = { message: 'password is invalid' }
+      this.setState({ errors: errors.concat(error) })
+      return false
+    }
+    else {
+      return true
+    }
+  }
+
+  /* 
+  note: check empty in form
+  */
+
+  isFormEmpty = ({ username, email, password, passwordConfirmation }) => {
+    return !username.length || !email.length || !passwordConfirmation.length || !password.length
+  }
+
+  /* 
+  note: check password is valid
+  */
+
+  isPasswordValid = ({ password, passwordConfirmation }) => {
+    if (password.length < 6 || passwordConfirmation.length < 6) {
+      return false
+    }
+    if (password !== passwordConfirmation) {
+      return false
+    }
+    return true
+  }
+
+  /* 
+  note: display errors
+  */
+
+  displayErrors = () => { return (_.map(this.state.errors, (error, i) => <p key={i}> {error.message} </p>)) }
+  /* 
+  note: submit form
+  */
   handleSubmit = event => {
-    event.preventDefault();
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(this.state.email, this.state.password)
-      .then(createdUser => {
-        console.log(createdUser);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    if (this.isFormValid()) {
+      event.preventDefault();
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(this.state.email, this.state.password)
+        .then(createdUser => {
+          console.log(createdUser);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
   };
 
   render() {
@@ -97,6 +155,11 @@ class Register extends React.Component {
               </Button>
             </Segment>
           </Form>
+          {this.state.errors.length > 0 &&
+            <Message error>
+              {this.displayErrors()}
+            </Message>
+          }
           <Message>
             Already a user? <Link to="/login">Login</Link>
           </Message>
