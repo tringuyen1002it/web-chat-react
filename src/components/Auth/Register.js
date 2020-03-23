@@ -11,14 +11,15 @@ import {
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import _ from 'lodash'
-
 class Register extends React.Component {
   state = {
     username: "",
     email: "",
     password: "",
     passwordConfirmation: "",
-    errors: []
+    errors: [],
+    loading: false,
+    userRef: firebase.database().ref('users')
   };
 
   /* 
@@ -80,22 +81,47 @@ class Register extends React.Component {
   note: submit form
   */
   handleSubmit = event => {
+    event.preventDefault();
     if (this.isFormValid()) {
-      event.preventDefault();
+      this.setState({ errors: [], loading: true })
       firebase
         .auth()
         .createUserWithEmailAndPassword(this.state.email, this.state.password)
         .then(createdUser => {
-          console.log(createdUser);
+          console.log("displayErrors -> createdUser", createdUser)
+          createdUser.user.updateProfile({
+            displayName: this.state.username,
+          })
+            .then(() => {
+              this.setState({ loading: false })
+            })
+            .then(() => {
+              this.saveUser(createdUser).then(() => {
+                console.log('save users')
+              })
+            })
+            .catch(err => {
+              console.log(err);
+              this.setState({ errors: this.state.errors.concat(err), loading: false })
+            });
         })
         .catch(err => {
           console.log(err);
+          this.setState({ errors: this.state.errors.concat(err), loading: false })
         });
     }
   };
 
+  saveUser = createdUser => {
+    return this.state.userRef.child(createdUser.user.uid).set({
+      name: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL
+    })
+  }
+
   render() {
-    const { username, email, password, passwordConfirmation } = this.state;
+    const { username, email, password, passwordConfirmation, errors } = this.state;
+    console.log("render -> errors", errors)
 
     return (
       <Grid textAlign="center" verticalAlign="middle" className="app">
@@ -115,6 +141,7 @@ class Register extends React.Component {
                 onChange={this.handleChange}
                 value={username}
                 type="text"
+
               />
 
               <Form.Input
@@ -126,6 +153,8 @@ class Register extends React.Component {
                 onChange={this.handleChange}
                 value={email}
                 type="email"
+                className={errors.some(error => error.message.includes("email")) ? "error" : ""}
+              // className={"error"}
               />
 
               <Form.Input
@@ -150,7 +179,7 @@ class Register extends React.Component {
                 type="password"
               />
 
-              <Button color="orange" fluid size="large">
+              <Button disabled={this.state.loading} className={this.state.loading ? 'loading' : ""} color="orange" fluid size="large">
                 Submit
               </Button>
             </Segment>
