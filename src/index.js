@@ -5,7 +5,7 @@ import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import registerServiceWorker from "./registerServiceWorker";
 import firebase from "./firebase";
-
+import Spinner from './Spinner'
 import "semantic-ui-css/semantic.min.css";
 
 import {
@@ -27,7 +27,7 @@ class Root extends React.Component {
   componentDidMount() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        // console.log(user);
+        console.log(this.props.isLoading)
         this.props.setUser(user);
         this.props.history.push("/");
       }
@@ -36,21 +36,23 @@ class Root extends React.Component {
 
   render() {
     return (
-      <Switch>
-        <Route exact path="/" component={App} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-      </Switch>
+      this.props.isLoading ? <Spinner /> : (
+        <Switch>
+          <Route exact path="/" component={App} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+        </Switch>
+      )
     );
   }
 }
 
+
+const mapStateToProps = (state) => ({
+  isLoading: state.user.isLoading
+})
 const RootWithAuth = withRouter(
-  connect(
-    null,
-    { setUser }
-  )(Root)
-);
+  connect(mapStateToProps, { setUser })(Root));
 
 ReactDOM.render(
   <Provider store={store}>
