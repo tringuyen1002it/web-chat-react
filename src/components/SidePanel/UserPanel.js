@@ -28,11 +28,11 @@ class UserPanel extends React.Component {
     fisebase
       .auth()
       .signOut()
-      .then(() => console.log("SIGN OUT!"))
+    // .then(() => console.log("SIGN OUT!"))
   }
   render() {
     const { currentUser } = this.props
-    console.log("UserPanel -> render -> currentUser", currentUser)
+    // console.log("UserPanel -> render -> currentUser", currentUser)
     return (
       <Grid style={{ background: "#4c3c4c" }}>
         <Grid.Column>

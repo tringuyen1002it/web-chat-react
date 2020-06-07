@@ -7,35 +7,29 @@ import MetaPanel from "./MetaPanel/MetaPanel";
 import { Grid } from "semantic-ui-react";
 import { connect } from 'react-redux'
 
-class App extends Component {
-  state = {
-    currentUser: ""
-  }
-  componentDidMount() {
-    this.setState({
-      currentUser: this.props.currentUser
-    })
-  }
+const App = ({ currentUser, currentChannel }) => (
+  <Grid columns="equal" className="app" style={{ background: "#eee" }}>
+    <ColorPanel />
+    <SidePanel key={currentUser && currentUser.uid} currentUser={currentUser} />
 
-  render() {
-    return (
-      <Grid columns="equal" className="app" style={{ background: "#eee" }}>
-        <ColorPanel />
-        <SidePanel currentUser={this.state.currentUser} />
-        <Grid.Column style={{ marginLeft: 320 }}>
-          <Messages />
-        </Grid.Column>
+    <Grid.Column style={{ marginLeft: 320 }}>
+      <Messages
+        key={currentChannel && currentChannel.id}
+        channel={currentChannel}
+        user={currentUser}
+      />
+    </Grid.Column>
 
-        <Grid.Column width={4}>
-          <MetaPanel />
-        </Grid.Column>
-      </Grid>
-    )
-  }
-}
+    <Grid.Column width={4}>
+      <MetaPanel />
+    </Grid.Column>
+  </Grid>
+);
+
 
 const mapStateToProps = (state) => ({
-  currentUser: state.user.currentUser
+  currentUser: state.user.currentUser,
+  currentChannel: state.channel.currentChannel
 })
 
 export default connect(mapStateToProps, null)(App);
